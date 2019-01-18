@@ -79,16 +79,21 @@ def main():
         print('2: Output the blockchain blocks')
         print('h: Manipulate the chain')
         print('q: quit')
-        
+
         user_choice = get_user_choice()
 
         if user_choice == '1':
             recipient, amount = get_transaction_value()
             add_transaction(owner, recipient, amount)
+            print(open_transactions)
         elif user_choice == '2':
             print_blockchain_elements()
         elif user_choice == 'h':
             if len(blockchain) >= 1:
                 blockchain[0] = [2]
         elif user_choice == 'q':
-            sys.exit()
+            waiting_for_input = False
+
+    print('Blockchain now shutting down')
+
+main()
