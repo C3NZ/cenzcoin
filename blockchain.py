@@ -74,8 +74,13 @@ def verify_transaction(transaction):
     '''
     sender_balance = get_balance(transaction['sender'])
 
-    return sender_balance >= transaction['amount']
+    return sender_balance >= transaction['amount'] and transaction['amount'] > 0
 
+def verify_transactions():
+    '''
+        Validate that all open transactions within the open transactions
+    '''
+    return all(verify_transaction(tx) for tx in open_transactions)
 
 def add_transaction(sender, recipient, amount=1.0):
     '''
@@ -101,6 +106,9 @@ def add_transaction(sender, recipient, amount=1.0):
     return False
 
 def mine_block():
+    '''
+        Mine the current block on the blockchain
+    '''
     last_block = blockchain[-1]
     hashed_block = hash_block(last_block)
     print(hashed_block)
@@ -117,8 +125,8 @@ def mine_block():
     copied_transactions.append(reward_transaction)
 
     block = {
-        'previous_hash': hashed_block, 
-        'index': len(blockchain), 
+        'previous_hash': hashed_block,
+        'index': len(blockchain),
         'transactions': copied_transactions
     }
 
@@ -169,6 +177,9 @@ def verify_chain():
 
 
 def main():
+    '''
+        Entry function for the blockchain to operate
+    '''
     waiting_for_input = True
     global open_transactions
 
@@ -178,6 +189,7 @@ def main():
         print('2: Mine a new block')
         print('3: Output the blockchain blocks')
         print('4: Show all participants')
+        print('5: Validate open transactions')
         print('h: Manipulate the chain')
         print('q: quit')
 
@@ -196,6 +208,11 @@ def main():
             print_blockchain_elements()
         elif user_choice == '4':
             print(participants)
+        elif user_choice == '5':
+            if verify_transactions():
+                print('all open transactions are currently valid')
+            else:
+                print('There are invalid transactions')
         elif user_choice == 'h':
             if len(blockchain) >= 1:
                 blockchain[0] = {
