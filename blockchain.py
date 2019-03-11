@@ -1,5 +1,7 @@
 import sys
 import functools
+import hashlib as hl
+import json
 
 # Mining reward for users mining blocks
 MINING_REWARD = 10
@@ -24,7 +26,9 @@ def hash_block(block):
         Arguments:
             :block: The block to be hashed
     '''
-    return '-'.join([str(block[key]) for key in block])
+    # Stringify and encode the block, return sha 256
+    stringified_block = json.dumps(block).encode()
+    return hl.sha256(stringified_block).hexdigest()
 
 def sum_transactions(tx_sum, txs):
     '''
@@ -34,9 +38,8 @@ def sum_transactions(tx_sum, txs):
             tx_sum: the total sum of all the current transactions
             txs: all transactions from the currently evaluated block
     '''
-    # Check if there are any transactions
+    # Check if there are any transactions on the current checked block
     if txs:
-        print(txs)
         return tx_sum + sum(txs)
 
     return tx_sum
