@@ -1,4 +1,5 @@
 import sys
+import functools
 
 # Mining reward for users mining blocks
 MINING_REWARD = 10
@@ -25,6 +26,21 @@ def hash_block(block):
     '''
     return '-'.join([str(block[key]) for key in block])
 
+def sum_transactions(tx_sum, txs):
+    '''
+        get_balance helper function for summing a users transaction total
+
+        Arguments:
+            tx_sum: the total sum of all the current transactions
+            txs: all transactions from the currently evaluated block
+    '''
+    # Check if there are any transactions
+    if txs:
+        print(txs)
+        return tx_sum + sum(txs)
+
+    return tx_sum
+
 def get_balance(participant):
     '''
         Gets the total balance of a single participants
@@ -37,22 +53,21 @@ def get_balance(participant):
     tx_sent = [[tx['amount'] for tx in block['transactions'] if tx['sender'] == participant] for block in blockchain]
     open_tx_sent = [[tx['amount'] for tx in open_transactions if tx['sender'] == participant]]
     tx_sent.extend(open_tx_sent)
-    amount_sent = 0
 
     # Sum up the amount the participant has sent
-    for tx_amount in tx_sent:
-        if len(tx_amount) > 0:
-            amount_sent += tx_amount[0]
+    print('amount sent')
+    print(tx_sent)
+    amount_sent = functools.reduce(sum_transactions, tx_sent, 0)
+    print(amount_sent)
 
     # Get the total transactions where the participant is the receiver (strictly closed)
     tx_received = [[tx['amount'] for tx in block['transactions'] if tx['recipient'] == participant] for block in blockchain]
-    amount_received = 0
 
     # Sum up the amount the participant has received
-    for tx_amount in tx_received:
-        if len(tx_amount) > 0:
-            amount_received += tx_amount[0]
-
+    print('amount recieved')
+    amount_received = functools.reduce(sum_transactions, tx_received, 0)
+    print(amount_received)
+    # Return the users balance
     return amount_received - amount_sent
 
 def get_last_blockchain_value():
@@ -223,7 +238,9 @@ def main():
         elif user_choice == 'q':
             waiting_for_input = False
 
-        print(get_balance(owner))
+        # Use a format string to create a formatted string indicating who the owner is and what their balance is 
+        print(f'Balance of {owner}: {get_balance(owner):6.2f}')
+
         # Verify the blockchain over every action
         if not verify_chain():
             print_blockchain_elements()
