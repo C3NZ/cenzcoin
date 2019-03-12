@@ -1,10 +1,14 @@
 '''
     Blockchain file module
 '''
+
+# std lib imports
 import json
 import pickle
-
 from collections import OrderedDict
+
+# Own imports
+from block import Block
 
 def save_data(blockchain, open_transactions, to_json=False):
     '''
@@ -42,8 +46,14 @@ def parse_json_block(block):
         Returns:
             the parsed blocked to be added to the blockchain
     '''
+
+    index = block['index']
+    previous_hash = block['previous_hash']
+    transactions = []
+    proof = block['proof']
+    timestamp = block['timestamp']
+
     # Get all transactions from the block
-    all_tx = []
     for curr_tx in block['transactions']:
         # Bundle the data for the transaction
         tx_data = [
@@ -54,18 +64,10 @@ def parse_json_block(block):
 
         # create the current transaction as an ordered dict (for hashing consistency)
         curr_tx = OrderedDict(tx_data)
-        all_tx.append(curr_tx)
+        transactions.append(curr_tx)
 
-    # Bundle the data for the block
-    parsed_block_data = [
-        ('previous_hash', block['previous_hash']),
-        ('index', block['index']),
-        ('transactions', all_tx),
-        ('proof', block['proof'])
-    ]
-
-    # Create the parsed block and then return it
-    parsed_block = OrderedDict(parsed_block_data)
+    # Create the new block
+    parsed_block = Block(index, previous_hash, transactions, proof, timestamp)
     return parsed_block
 
 def parse_json_ot(open_tx):
@@ -128,15 +130,16 @@ def load_data(from_json=False):
         # handle an IO error ocurring
         print('File couldnt be loaded, creating a new blockchain')
 
-        # Initialize our (empty) blockchain list
-        GENESIS_BLOCK = {
-            'previous_hash': 'genesis',
-            'index': 0,
-            'transactions': [],
-            'proof': 100
-        }
+        # Create genesis block information
+        index = 0
+        previous_hash = 'genesis'
+        transactions = []
+        proof = 100
+        timestamp = 0
 
-        blockchain = [GENESIS_BLOCK]
+        # Create the new blockchain and open_transactions
+        genesis_block = Block(index, previous_hash, transactions, proof, timestamp)
+        blockchain = [genesis_block]
         open_transactions = []
     finally:
         # Load blockchain and return it to client
