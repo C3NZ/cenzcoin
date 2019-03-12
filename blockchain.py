@@ -18,7 +18,6 @@ MINING_REWARD = 10
 # Initialize some other global variables
 open_transactions = []
 owner = 'cenz'
-participants = {owner}
 
 # Load the block (From either json or binary )
 blockchain, open_transactions = load_data(from_json=True)
@@ -227,8 +226,7 @@ def main():
         print('1: Add a new transaction value')
         print('2: Mine a new block')
         print('3: Output the blockchain blocks')
-        print('4: Show all participants')
-        print('5: Validate open transactions')
+        print('4: Validate open transactions')
         print('q: quit')
 
         user_choice = get_user_choice()
@@ -245,8 +243,6 @@ def main():
         elif user_choice == '3':
             print_blockchain_elements()
         elif user_choice == '4':
-            print(participants)
-        elif user_choice == '5':
             if verify_transactions():
                 print('all open transactions are currently valid')
             else:
