@@ -1,20 +1,22 @@
 import sys
-import functools
 import hashlib as hl
 import json
+
+from functools import reduce
 
 # Mining reward for users mining blocks
 MINING_REWARD = 10
 
 # Initialize our (empty) blockchain list
-genesis_block = {
-        'previous_hash': 'genesis', 
-        'index': 0, 
-        'transactions': []
-    }
+GENESIS_BLOCK = {
+    'previous_hash': 'genesis', 
+    'index': 0, 
+    'transactions': [],
+    'proof': 100
+}
 
 # Initialize some other global variables
-blockchain = [genesis_block]
+blockchain = [GENESIS_BLOCK]
 open_transactions = []
 owner = 'cenz'
 participants = {owner}
@@ -25,10 +27,38 @@ def hash_block(block):
 
         Arguments:
             :block: The block to be hashed
+
+        Returns:
+            a string containing the hex digest of the sha 256 hash
     '''
     # Stringify and encode the block, return sha 256
     stringified_block = json.dumps(block).encode()
     return hl.sha256(stringified_block).hexdigest()
+
+def proof_of_work():
+    '''
+        Calculate a valid proof of work
+    '''
+    # The last block added to the blockchain
+    last_block = blockchain[-1]
+    last_hash = hash_block(last_block)
+    proof = 0
+
+    while not valid_proof(open_transactions, last_hash, proof):
+        proof += 1
+
+    return proof
+
+def valid_proof(transactions, last_hash, proof):
+    '''
+        Check to see if the current proof is valid
+    '''
+    guess = (str(transactions) + str(last_hash) + str(proof)).encode()
+    guessed_hash = hl.sha256(guess).hexdigest()
+
+    print(guessed_hash)
+    return guessed_hash[:2] == '00'
+
 
 def sum_transactions(tx_sum, txs):
     '''
@@ -58,18 +88,14 @@ def get_balance(participant):
     tx_sent.extend(open_tx_sent)
 
     # Sum up the amount the participant has sent
-    print('amount sent')
-    print(tx_sent)
-    amount_sent = functools.reduce(sum_transactions, tx_sent, 0)
-    print(amount_sent)
+    amount_sent = reduce(sum_transactions, tx_sent, 0)
 
     # Get the total transactions where the participant is the receiver (strictly closed)
     tx_received = [[tx['amount'] for tx in block['transactions'] if tx['recipient'] == participant] for block in blockchain]
 
     # Sum up the amount the participant has received
-    print('amount recieved')
-    amount_received = functools.reduce(sum_transactions, tx_received, 0)
-    print(amount_received)
+    amount_received = reduce(sum_transactions, tx_received, 0)
+
     # Return the users balance
     return amount_received - amount_sent
 
@@ -129,7 +155,7 @@ def mine_block():
     '''
     last_block = blockchain[-1]
     hashed_block = hash_block(last_block)
-    print(hashed_block)
+    proof = proof_of_work()
 
     # Rewarding the owner for mining a block
     reward_transaction = {
@@ -145,7 +171,8 @@ def mine_block():
     block = {
         'previous_hash': hashed_block,
         'index': len(blockchain),
-        'transactions': copied_transactions
+        'transactions': copied_transactions,
+        'proof': proof
     }
 
     blockchain.append(block)
@@ -189,7 +216,15 @@ def verify_chain():
 
         # Ensure the current blocks previous hash matches the hash of the previous block
         if block['previous_hash'] != hash_block(blockchain[index - 1]):
+            print('The previous hash doesnt match the hash of the block on the blockchain ')
             return False
+
+        #Select every part of the list except for the last element 
+        # in the transactions (the reward transaction) because it is not part of the proof of work calculation
+        if not valid_proof(block['transactions'][:-1], block['previous_hash'], block['proof']):
+            print('Proof of work is invalid')
+            return False
+
     return True
 
 
