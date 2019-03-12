@@ -1,8 +1,11 @@
 # std lib imports
 import json
 import pickle
+import pdb
+import sys
 from collections import OrderedDict
 from functools import reduce
+
 
 # Own imports
 from hash_util import hash_string_256, hash_block
@@ -26,7 +29,7 @@ owner = 'cenz'
 participants = {owner}
 
 # Load the block (From either json or binary )
-load_data(from_json=False)
+blockchain, open_transactions = load_data(from_json=False)
 
 def proof_of_work():
     '''
@@ -293,4 +296,7 @@ def main():
     print('Blockchain now shutting down')
 
 if __name__ == '__main__':
+    # add debug to the command to enter debug mode
+    if len(sys.argv) >= 2 and sys.argv[1] == 'debug':
+        pdb.set_trace()
     main()
