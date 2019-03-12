@@ -9,6 +9,7 @@ from collections import OrderedDict
 
 # Own imports
 from block import Block
+from transaction import Transaction
 
 def save_data(blockchain, open_transactions, to_json=False):
     '''
@@ -26,10 +27,19 @@ def save_data(blockchain, open_transactions, to_json=False):
 
             # Write the blockchain to file as either text or binary
             if to_json:
-                saveable_chain = [block.__dict__ for block in blockchain]
+                # Create json compatible formats of our objects
+                saveable_chain = [block.__dict__.copy() for block in blockchain]
+
+                # Make all transactions hashable
+                for block in saveable_chain:
+                    block['transactions'] = [tx.to_ordered_dict() for tx in block['transactions']]
+
+                saveable_tx = [tx.to_ordered_dict() for tx in open_transactions]
+
+                # Write saveable objects to file
                 open_file.write(json.dumps(saveable_chain))
                 open_file.write('\n')
-                open_file.write(json.dumps(open_transactions))
+                open_file.write(json.dumps(saveable_tx))
             else:
                 binary_data = {
                     'blockchain': blockchain,
@@ -39,6 +49,23 @@ def save_data(blockchain, open_transactions, to_json=False):
                 open_file.write(pickle.dumps(binary_data))
     except IOError:
         print('File couldnt be saved')
+
+def parse_json_tx(open_tx):
+    '''
+        parse a json transaction
+
+        Arguments:
+            :json_ot: the json version of the open transaction
+    '''
+    # Create the transaction data
+    sender = open_tx['sender']
+    recipient = open_tx['recipient']
+    amount = open_tx['amount']
+
+    # Create the transaction and return it
+    transaction = Transaction(sender, recipient, amount)
+    return transaction
+
 
 def parse_json_block(block):
     '''
@@ -51,45 +78,21 @@ def parse_json_block(block):
             the parsed blocked to be added to the blockchain
     '''
 
+    # block metadata
     index = block['index']
     previous_hash = block['previous_hash']
     transactions = []
     proof = block['proof']
     timestamp = block['timestamp']
 
-    # Get all transactions from the block
+    # Parse all transactions within the block
     for curr_tx in block['transactions']:
-        # Bundle the data for the transaction
-        tx_data = [
-            ('sender', curr_tx['sender']),
-            ('recipient', curr_tx['recipient']),
-            ('amount', curr_tx['amount'])
-        ]
-
-        # create the current transaction as an ordered dict (for hashing consistency)
-        curr_tx = OrderedDict(tx_data)
-        transactions.append(curr_tx)
+        transaction = parse_json_tx(curr_tx)
+        transactions.append(transaction)
 
     # Create the new block
     parsed_block = Block(index, previous_hash, transactions, proof, timestamp)
     return parsed_block
-
-def parse_json_ot(open_tx):
-    '''
-        parse a json transaction
-
-        Arguments:
-            :json_ot: the json version of the open transaction
-    '''
-    tx_data = [
-        ('sender', open_tx['sender']),
-        ('recipient', open_tx['recipient']),
-        ('amount', open_tx['amount'])
-    ]
-
-    # Create the outstanding transaction and return it  
-    ot_tx = OrderedDict(tx_data)
-    return ot_tx
 
 def load_data(from_json=False):
     '''
@@ -126,8 +129,8 @@ def load_data(from_json=False):
 
                 # Iterate over the open transactions, parse them, and then add them to the open transactions list 
                 for json_tx in json_ot:
-                    tx_dict = parse_json_ot(json_tx)
-                    open_transactions.append(tx_dict)
+                    transaction = parse_json_tx(json_tx)
+                    open_transactions.append(transaction)
             else:
                 # Load the blockchain from a pickle file
                 saved_data = pickle.loads(open_file.read())
