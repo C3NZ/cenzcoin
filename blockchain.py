@@ -1,9 +1,9 @@
-import sys
-import hashlib as hl
-import json
+# std lib imports
 from collections import OrderedDict
-
 from functools import reduce
+
+# Own imports
+from hash_util import hash_string_256, hash_block
 
 # Mining reward for users mining blocks
 MINING_REWARD = 10
@@ -21,20 +21,6 @@ blockchain = [GENESIS_BLOCK]
 open_transactions = []
 owner = 'cenz'
 participants = {owner}
-
-def hash_block(block):
-    '''
-        Hash a block and then returned the hashed block to the user
-
-        Arguments:
-            :block: The block to be hashed
-
-        Returns:
-            a string containing the hex digest of the sha 256 hash
-    '''
-    # Stringify and encode the block, return sha 256
-    stringified_block = json.dumps(block).encode()
-    return hl.sha256(stringified_block).hexdigest()
 
 def proof_of_work():
     '''
@@ -55,7 +41,7 @@ def valid_proof(transactions, last_hash, proof):
         Check to see if the current proof is valid
     '''
     guess = (str(transactions) + str(last_hash) + str(proof)).encode()
-    guessed_hash = hl.sha256(guess).hexdigest()
+    guessed_hash = hash_string_256(guess)
 
     print(guessed_hash)
     return guessed_hash[:2] == '00'
