@@ -40,8 +40,14 @@ class Blockchain:
             :hosting_node: the node currently hosting this blockchain
     '''
     def __init__(self, hosting_node_id):
-        self.chain, self.open_transactions = load_data(from_json=True)
+        self.__chain, self.__open_transactions = load_data(from_json=True)
         self.hosting_node = hosting_node_id
+
+    def get_chain(self):
+        return self.__chain[:]
+
+    def get_open_transactions(self):
+        return self.__open_transactions[:]
 
     def proof_of_work(self):
         '''
@@ -51,11 +57,11 @@ class Blockchain:
                 proof number that generates a valid hash
         '''
         # The last block added to the blockchain
-        last_block = self.chain[-1]
+        last_block = self.__chain[-1]
         last_hash = hash_block(last_block)
         proof = 0
 
-        while not Verification.valid_proof(self.open_transactions, last_hash, proof):
+        while not Verification.valid_proof(self.__open_transactions, last_hash, proof):
             proof += 1
 
         return proof
@@ -74,15 +80,15 @@ class Blockchain:
         participant = self.hosting_node
 
         # Get the total transactions where the participant is the sender (both open and closed)
-        tx_sent = [[tx.amount for tx in block.transactions if tx.sender == participant] for block in self.chain]
-        open_tx_sent = [[tx.amount for tx in self.open_transactions if tx.sender == participant]]
+        tx_sent = [[tx.amount for tx in block.transactions if tx.sender == participant] for block in self.__chain]
+        open_tx_sent = [[tx.amount for tx in self.__open_transactions if tx.sender == participant]]
         tx_sent.extend(open_tx_sent)
 
         # Sum up the amount the participant has sent
         amount_sent = reduce(sum_transactions, tx_sent, 0)
 
         # Get the total transactions where the participant is the receiver (strictly closed)
-        tx_received = [[tx.amount for tx in block.transactions if tx.recipient == participant] for block in self.chain]
+        tx_received = [[tx.amount for tx in block.transactions if tx.recipient == participant] for block in self.__chain]
 
         # Sum up the amount the participant has received
         amount_received = reduce(sum_transactions, tx_received, 0)
@@ -97,10 +103,10 @@ class Blockchain:
             Returns:
                 The last block on the blockchain
         '''
-        if len(self.chain) < 1:
+        if len(self.__chain) < 1:
             return None
         else:
-            return self.chain[-1]
+            return self.__chain[-1]
 
 
     def add_transaction(self, sender, recipient, amount=1.0):
@@ -123,7 +129,7 @@ class Blockchain:
         # If the transaction is legitimate, add it to the open transactions list and
         # keep track of participants
         if Verification.verify_transaction(transaction, self.get_balance):
-            self.open_transactions.append(transaction)
+            self.__open_transactions.append(transaction)
             return True
 
         return False
@@ -135,7 +141,7 @@ class Blockchain:
             Returns:
                 True if successful
         '''
-        last_block = self.chain[-1]
+        last_block = self.__chain[-1]
         hashed_block = hash_block(last_block)
         proof = self.proof_of_work()
 
@@ -143,20 +149,20 @@ class Blockchain:
 
         # Modify a local list of transactions so that users don't get rewarded if 
         # mining turns out to be unsuccessful
-        copied_transactions = self.open_transactions[:]
+        copied_transactions = self.__open_transactions[:]
         copied_transactions.append(reward_tx)
 
         # Create the k,v pairs inside of tuples for the ordered dictionary to insert them in the order
         # we specify the list
-        index = len(self.chain)
+        index = len(self.__chain)
         previous_hash = hashed_block
         transactions = copied_transactions
 
         # Create our block, append it to the blockchain, and then save the blockchain
         block = Block(index, previous_hash, transactions, proof)
-        self.chain.append(block)
-        save_data(self.chain, self.open_transactions, to_json=True)
-        self.open_transactions = []
+        self.__chain.append(block)
+        save_data(self.__chain, self.__open_transactions, to_json=True)
+        self.__open_transactions = []
         return True
 
 
