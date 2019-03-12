@@ -40,14 +40,22 @@ class Blockchain:
             :hosting_node: the node currently hosting this blockchain
     '''
     def __init__(self, hosting_node_id):
-        self.__chain, self.__open_transactions = load_data(from_json=True)
+        self.chain, self.__open_transactions = load_data(from_json=True)
         self.hosting_node = hosting_node_id
 
-    def get_chain(self):
+    @property
+    def chain(self):
         return self.__chain[:]
 
-    def get_open_transactions(self):
+    @chain.setter
+    def chain(self, value):
+        self.__chain = value
+
+    @property
+    def open_transactions(self):
         return self.__open_transactions[:]
+
+
 
     def proof_of_work(self):
         '''

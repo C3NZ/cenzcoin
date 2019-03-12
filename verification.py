@@ -37,12 +37,12 @@ class Verification:
         '''
 
         # Enumerate the blockchain in order to retrieve the current block & it's index
-        for index, block in enumerate(blockchain.get_chain()):
+        for index, block in enumerate(blockchain.chain):
             if index == 0:
                 continue
 
             # Ensure the current blocks previous hash matches the hash of the previous block
-            if block.previous_hash != hash_block(blockchain.get_chain()[index - 1]):
+            if block.previous_hash != hash_block(blockchain.chain[index - 1]):
                 print('The previous hash doesnt match the hash of the block on the blockchain ')
                 return False
 

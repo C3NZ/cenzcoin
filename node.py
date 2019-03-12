@@ -39,7 +39,7 @@ class Node:
         '''
             Output all blocks of the blockchain
         '''
-        for block in self.blockchain.get_chain():
+        for block in self.blockchain.chain:
             print(block)
         else:
             print('-'*10)
@@ -69,7 +69,7 @@ class Node:
             elif user_choice == '3':
                 self.print_blockchain_elements()
             elif user_choice == '4':
-                if Verification.verify_transactions(bc.get_open_transactions(), bc.get_balance):
+                if Verification.verify_transactions(bc.open_transactions, bc.get_balance):
                     print('all open transactions are currently valid')
                 else:
                     print('There are invalid transactions')
