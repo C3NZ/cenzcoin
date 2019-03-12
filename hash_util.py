@@ -1,3 +1,6 @@
+'''
+    hash util module - for hashing related functions
+'''
 import hashlib as hl
 import json
 

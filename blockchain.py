@@ -25,6 +25,9 @@ blockchain, open_transactions = load_data(from_json=True)
 def proof_of_work():
     '''
         Calculate a valid proof of work
+
+        Returns:
+            proof number that generates a valid hash
     '''
     # The last block added to the blockchain
     last_block = blockchain[-1]
@@ -39,6 +42,14 @@ def proof_of_work():
 def valid_proof(transactions, last_hash, proof):
     '''
         Check to see if the current proof is valid
+
+        Arguments:
+            :transactions: the list of transactions on the block
+            :last_hash: the hash of the previous block
+            :proof: the proof number used for attempting to generate a valid hash
+
+        Returns:
+            True if the guessed hash has two leading 0s, False otherwise
     '''
     hashable_txs = [tx.to_ordered_dict() for tx in transactions]
     guess = (str(hashable_txs) + str(last_hash) + str(proof)).encode()
@@ -67,6 +78,9 @@ def get_balance(participant):
 
         Arguments:
             :participant: the name of the participant that we want the balance of
+
+        Returns:
+            The balance of the participant
     '''
 
     # Get the total transactions where the participant is the sender (both open and closed)
@@ -88,7 +102,10 @@ def get_balance(participant):
 
 def get_last_blockchain_value():
     '''
-        Returns the last value of the current blockchain.
+        Grab the last block from the blockchain
+
+        Returns:
+            The last block on the blockchain
     '''
     if len(blockchain) < 1:
         return None
@@ -102,6 +119,10 @@ def verify_transaction(transaction):
 
         Arguments:
             :transacation: The transaction that we're trying to verify
+
+        Returns:
+            True if the sender balance is greater than the tx amount and that
+            the tx amount is greater than 0
     '''
     sender_balance = get_balance(transaction.sender)
 
@@ -110,6 +131,9 @@ def verify_transaction(transaction):
 def verify_transactions():
     '''
         Validate that all open transactions within the open transactions
+
+        Returns:
+            True if all transactions are valid, False otherwise.
     '''
     return all(verify_transaction(tx) for tx in open_transactions)
 
@@ -121,6 +145,9 @@ def add_transaction(sender, recipient, amount=1.0):
                 :sender: The sender of the coins
                 :recipient: The recipient of the coins.
                 :amount: The amount of coins sent with the transaction(default=1.0)
+
+        Returns:
+            True if the transaction is valid, False otherwise
     '''
 
 
@@ -139,6 +166,9 @@ def add_transaction(sender, recipient, amount=1.0):
 def mine_block():
     '''
         Mine the current block on the blockchain
+
+        Returns:
+            True if successful
     '''
     last_block = blockchain[-1]
     hashed_block = hash_block(last_block)
@@ -166,7 +196,11 @@ def mine_block():
 
 def get_transaction_value():
     '''
-        Returns the recipient and amount being sent to the recipient in a tuple
+        Get the transaction recipient and value 
+
+        Returns:
+            :recipient: tx recipient as a string
+            :amount: tx amount as a float
     '''
     recipient = input('Enter the recipient of the transaction: ')
     amount = float(input('Your transaction amount please: '))
@@ -175,13 +209,16 @@ def get_transaction_value():
 def get_user_choice():
     '''
         Prompts the user for its choice and return it.
+
+        Returns:
+            :user_input: the users input as a string
     '''
     user_input = input('Your choice: ')
     return user_input
 
 def print_blockchain_elements():
     '''
-        Output all blocks of the blockchain 
+        Output all blocks of the blockchain
     '''
     for block in blockchain:
         print('Outputting Block')
@@ -191,7 +228,10 @@ def print_blockchain_elements():
 
 def verify_chain():
     '''
-        verify the current blockchain and return True if its valid. False otherwise
+        Verify the current blockchain
+
+        Returns:
+            True if the blockchain is valid, False otherwise
     '''
 
     # Enumerate the blockchain in order to retrieve the current block & it's index

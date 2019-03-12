@@ -1,5 +1,5 @@
 '''
-    Blockchain file module
+    Blockchain file module - for all blockchain file related actions
 '''
 
 # std lib imports
@@ -14,10 +14,18 @@ from transaction import Transaction
 def save_data(blockchain, open_transactions, to_json=False):
     '''
         Save the blockchain to a file
+
+        Arguments:
+            :blockchain: the blockchain to save
+            :open_transactions: a list of open transactions
+            :to_json: blockchain file format
     '''
+
+    # File mode and name
     mode = 'wb'
     filename = 'blockchain.p'
 
+    # Write as json file
     if to_json:
         mode = 'w'
         filename = 'blockchain.txt'
@@ -97,14 +105,20 @@ def parse_json_block(block):
 def load_data(from_json=False):
     '''
         Load the blockchain from a file 
+
+        Arguments:
+            :from_json: flag to determine which file to read 
     '''
+    # file mode and path
     mode = 'rb'
     filename = 'blockchain.p'
 
+    # Handle as json
     if from_json:
         mode = 'r'
         filename = 'blockchain.txt'
 
+    # Create blockchain and open_transacions
     blockchain = []
     open_transactions = []
 
