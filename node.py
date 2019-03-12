@@ -12,7 +12,6 @@ class Node:
         # self.id = str(uuid4())
         self.id = 'tempid'
         self.blockchain = Blockchain(self.id)
-        self.verifier = Verification()
 
     def get_transaction_value(self):
         '''
@@ -70,7 +69,7 @@ class Node:
             elif user_choice == '3':
                 self.print_blockchain_elements()
             elif user_choice == '4':
-                if self.verifier.verify_transactions(bc.open_transactions, bc.get_balance):
+                if Verification.verify_transactions(bc.open_transactions, bc.get_balance):
                     print('all open transactions are currently valid')
                 else:
                     print('There are invalid transactions')
@@ -81,7 +80,7 @@ class Node:
             print(f'Balance of {self.id}: {bc.get_balance():6.2f}')
 
             # Verify the blockchain over every action
-            if not self.verifier.verify_chain(bc):
+            if not Verification.verify_chain(bc):
                 self.print_blockchain_elements()
                 print('Invalid blockchain!')
                 break

@@ -41,7 +41,6 @@ class Blockchain:
     '''
     def __init__(self, hosting_node_id):
         self.chain, self.open_transactions = load_data(from_json=True)
-        self.verifier = Verification() 
         self.hosting_node = hosting_node_id
 
     def proof_of_work(self):
@@ -56,7 +55,7 @@ class Blockchain:
         last_hash = hash_block(last_block)
         proof = 0
 
-        while not self.verifier.valid_proof(self.open_transactions, last_hash, proof):
+        while not Verification.valid_proof(self.open_transactions, last_hash, proof):
             proof += 1
 
         return proof
@@ -117,14 +116,13 @@ class Blockchain:
                 True if the transaction is valid, False otherwise
         '''
 
-
         # Use an ordered dict to always ensure the order of keys inside of the dictionary (for consistent hashing)
         # dicts return keys that arent in any specific order, which when stringified, can ruin a hash value. An ordered
         # dict orders the key that are entered the order that they're entered in, allowing us to have consistent hashing
         transaction = Transaction(sender, recipient, amount)
         # If the transaction is legitimate, add it to the open transactions list and
         # keep track of participants
-        if self.verifier.verify_transaction(transaction, self.get_balance):
+        if Verification.verify_transaction(transaction, self.get_balance):
             self.open_transactions.append(transaction)
             return True
 
@@ -166,4 +164,3 @@ if __name__ == '__main__':
     # add debug to the command to enter debug mode
     if len(sys.argv) >= 2 and sys.argv[1] == 'debug':
         pdb.set_trace()
-    main()
