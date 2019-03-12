@@ -14,20 +14,23 @@ def save_data(blockchain, open_transactions, to_json=False):
     if to_json:
         mode = 'w'
 
-    with open('blockchain.p', mode) as open_file:
+    try:
+        with open('blockchain.p', mode) as open_file:
 
-        # Write the blockchain to file as either text or binary
-        if to_json:
-            open_file.write(json.dumps(blockchain))
-            open_file.write('\n')
-            open_file.write(json.dumps(open_transactions))
-        else:
-            binary_data = {
-                'blockchain': blockchain,
-                'ot': open_transactions
-            }
+            # Write the blockchain to file as either text or binary
+            if to_json:
+                open_file.write(json.dumps(blockchain))
+                open_file.write('\n')
+                open_file.write(json.dumps(open_transactions))
+            else:
+                binary_data = {
+                    'blockchain': blockchain,
+                    'ot': open_transactions
+                }
 
-            open_file.write(pickle.dumps(binary_data))
+                open_file.write(pickle.dumps(binary_data))
+    except IOError:
+        print('File couldnt be saved')
 
 def parse_json_block(block):
     '''
@@ -93,34 +96,40 @@ def load_data(from_json=False):
     blockchain = []
     open_transactions = []
 
-    # Open either the json or binary file
-    with open('blockchain.p', mode) as open_file:
-        # Handle either json or pickle file
-        if from_json:
-            # grab the lines, the blockchain from them, and then create the real blockchain 
-            lines = open_file.readlines()
-            json_chain = json.loads(lines[0][:-1])
-            blockchain = []
+    try:
+        # Open either the json or binary file
+        with open('blockchain.p', mode) as open_file:
+            # Handle either json or pickle file
+            if from_json:
+                # grab the lines, the blockchain from them, and then create the real blockchain 
+                lines = open_file.readlines()
+                json_chain = json.loads(lines[0][:-1])
+                blockchain = []
 
-            # Iterate over every block and parse them all from json
-            for block in json_chain:
-                real_block = parse_json_block(block)
-                blockchain.append(real_block)
+                # Iterate over every block and parse them all from json
+                for block in json_chain:
+                    real_block = parse_json_block(block)
+                    blockchain.append(real_block)
 
-            # Load the open transactions from the json and create the open transactions list
-            json_ot = json.loads(lines[1])
-            open_transactions = []
+                # Load the open transactions from the json and create the open transactions list
+                json_ot = json.loads(lines[1])
+                open_transactions = []
 
-            # Iterate over the open transactions, parse them, and then add them to the open transactions list 
-            for json_tx in json_ot:
-                tx_dict = parse_json_ot(json_tx)
-                open_transactions.append(tx_dict)
-        else:
-            # Load the blockchain from a pickle file
-            saved_data = pickle.loads(open_file.read())
-            blockchain = saved_data['blockchain']
-            open_transactions = saved_data['ot']
-
-
+                # Iterate over the open transactions, parse them, and then add them to the open transactions list 
+                for json_tx in json_ot:
+                    tx_dict = parse_json_ot(json_tx)
+                    open_transactions.append(tx_dict)
+            else:
+                # Load the blockchain from a pickle file
+                saved_data = pickle.loads(open_file.read())
+                blockchain = saved_data['blockchain']
+                open_transactions = saved_data['ot']
+    except IOError:
+        # handle an IO error ocurring
+        print('File couldnt be loaded, using a blank blockchain')
+        blockchain = []
+        open_transactions = []
+    finally:
+        # Load blockchain and return it to client
+        print("Blockchain and open transactions loaded")
         return (blockchain, open_transactions)
-
