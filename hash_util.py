@@ -8,7 +8,7 @@ def hash_string_256(input_string):
         Returns:
             a string containing the hex digest of a sha256 hash
     '''
-    return hl.sha256(string).hexdigest()
+    return hl.sha256(input_string).hexdigest()
 
 def hash_block(block):
     '''
