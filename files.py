@@ -126,8 +126,17 @@ def load_data(from_json=False):
                 open_transactions = saved_data['ot']
     except IOError:
         # handle an IO error ocurring
-        print('File couldnt be loaded, using a blank blockchain')
-        blockchain = []
+        print('File couldnt be loaded, creating a new blockchain')
+
+        # Initialize our (empty) blockchain list
+        GENESIS_BLOCK = {
+            'previous_hash': 'genesis',
+            'index': 0,
+            'transactions': [],
+            'proof': 100
+        }
+
+        blockchain = [GENESIS_BLOCK]
         open_transactions = []
     finally:
         # Load blockchain and return it to client

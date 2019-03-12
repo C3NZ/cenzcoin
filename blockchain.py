@@ -14,14 +14,6 @@ from files import save_data, load_data
 # Mining reward for users mining blocks
 MINING_REWARD = 10
 
-# Initialize our (empty) blockchain list
-GENESIS_BLOCK = {
-    'previous_hash': 'genesis',
-    'index': 0,
-    'transactions': [],
-    'proof': 100
-}
-
 # Initialize some other global variables
 open_transactions = []
 owner = 'cenz'
@@ -29,9 +21,6 @@ participants = {owner}
 
 # Load the block (From either json or binary )
 blockchain, open_transactions = load_data(from_json=False)
-
-if not blockchain:
-    blockchain = [GENESIS_BLOCK]
 
 def proof_of_work():
     '''
