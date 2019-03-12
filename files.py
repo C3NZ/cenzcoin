@@ -15,15 +15,19 @@ def save_data(blockchain, open_transactions, to_json=False):
         Save the blockchain to a file
     '''
     mode = 'wb'
+    filename = 'blockchain.p'
+
     if to_json:
         mode = 'w'
+        filename = 'blockchain.txt'
 
     try:
-        with open('blockchain.p', mode) as open_file:
+        with open(filename, mode) as open_file:
 
             # Write the blockchain to file as either text or binary
             if to_json:
-                open_file.write(json.dumps(blockchain))
+                saveable_chain = [block.__dict__ for block in blockchain]
+                open_file.write(json.dumps(saveable_chain))
                 open_file.write('\n')
                 open_file.write(json.dumps(open_transactions))
             else:
@@ -92,15 +96,18 @@ def load_data(from_json=False):
         Load the blockchain from a file 
     '''
     mode = 'rb'
+    filename = 'blockchain.p'
+
     if from_json:
         mode = 'r'
+        filename = 'blockchain.txt'
 
     blockchain = []
     open_transactions = []
 
     try:
         # Open either the json or binary file
-        with open('blockchain.p', mode) as open_file:
+        with open(filename, mode) as open_file:
             # Handle either json or pickle file
             if from_json:
                 # grab the lines, the blockchain from them, and then create the real blockchain 
@@ -126,7 +133,7 @@ def load_data(from_json=False):
                 saved_data = pickle.loads(open_file.read())
                 blockchain = saved_data['blockchain']
                 open_transactions = saved_data['ot']
-    except IOError:
+    except (IOError, IndexError):
         # handle an IO error ocurring
         print('File couldnt be loaded, creating a new blockchain')
 
