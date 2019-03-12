@@ -35,12 +35,12 @@ class Verification:
         '''
 
         # Enumerate the blockchain in order to retrieve the current block & it's index
-        for index, block in enumerate(blockchain):
+        for index, block in enumerate(blockchain.chain):
             if index == 0:
                 continue
 
             # Ensure the current blocks previous hash matches the hash of the previous block
-            if block.previous_hash != hash_block(blockchain[index - 1]):
+            if block.previous_hash != hash_block(blockchain.chain[index - 1]):
                 print('The previous hash doesnt match the hash of the block on the blockchain ')
                 return False
 
@@ -65,7 +65,7 @@ class Verification:
                 True if the sender balance is greater than the tx amount and that
                 the tx amount is greater than 0
         '''
-        sender_balance = get_balance(transaction.sender)
+        sender_balance = get_balance()
 
         return sender_balance >= transaction.amount and transaction.amount > 0
 

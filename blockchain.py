@@ -33,6 +33,11 @@ def sum_transactions(tx_sum, txs):
 class Blockchain:
     '''
         Blockchain class
+
+        Properties:
+            :chain: the blockchain itself (list of blocks)
+            :open_transactions: all open transactions
+            :hosting_node: the node currently hosting this blockchain
     '''
     def __init__(self, hosting_node_id):
         self.chain, self.open_transactions = load_data(from_json=True)
