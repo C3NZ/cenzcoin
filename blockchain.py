@@ -20,7 +20,7 @@ owner = 'cenz'
 participants = {owner}
 
 # Load the block (From either json or binary )
-blockchain, open_transactions = load_data(from_json=False)
+blockchain, open_transactions = load_data(from_json=True)
 
 def proof_of_work():
     '''
@@ -168,9 +168,9 @@ def mine_block():
     transactions = copied_transactions
 
     # Create our block, append it to the blockchain, and then save the blockchain
-    block = Block(index, previous_hash, transactions, poof)
+    block = Block(index, previous_hash, transactions, proof)
     blockchain.append(block)
-    save_data(blockchain, open_transactions, to_json=False)
+    save_data(blockchain, open_transactions, to_json=True)
     return True
 
 
