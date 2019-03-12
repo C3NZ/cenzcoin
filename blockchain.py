@@ -10,6 +10,7 @@ from functools import reduce
 from hash_util import hash_string_256, hash_block
 from files import save_data, load_data
 from block import Block
+from transaction import Transaction
 
 # Mining reward for users mining blocks
 MINING_REWARD = 10
@@ -40,7 +41,8 @@ def valid_proof(transactions, last_hash, proof):
     '''
         Check to see if the current proof is valid
     '''
-    guess = (str(transactions) + str(last_hash) + str(proof)).encode()
+    hashable_txs = [tx.to_ordered_dict() for tx in transactions]
+    guess = (str(hashable_txs) + str(last_hash) + str(proof)).encode()
     guessed_hash = hash_string_256(guess)
 
     return guessed_hash[:2] == '00'
@@ -69,15 +71,15 @@ def get_balance(participant):
     '''
 
     # Get the total transactions where the participant is the sender (both open and closed)
-    tx_sent = [[tx['amount'] for tx in block.transactions if tx['sender'] == participant] for block in blockchain]
-    open_tx_sent = [[tx['amount'] for tx in open_transactions if tx['sender'] == participant]]
+    tx_sent = [[tx.amount for tx in block.transactions if tx.sender == participant] for block in blockchain]
+    open_tx_sent = [[tx.amount for tx in open_transactions if tx.sender == participant]]
     tx_sent.extend(open_tx_sent)
 
     # Sum up the amount the participant has sent
     amount_sent = reduce(sum_transactions, tx_sent, 0)
 
     # Get the total transactions where the participant is the receiver (strictly closed)
-    tx_received = [[tx['amount'] for tx in block.transactions if tx['recipient'] == participant] for block in blockchain]
+    tx_received = [[tx.amount for tx in block.transactions if tx.recipient == participant] for block in blockchain]
 
     # Sum up the amount the participant has received
     amount_received = reduce(sum_transactions, tx_received, 0)
@@ -102,9 +104,9 @@ def verify_transaction(transaction):
         Arguments:
             :transacation: The transaction that we're trying to verify
     '''
-    sender_balance = get_balance(transaction['sender'])
+    sender_balance = get_balance(transaction.sender)
 
-    return sender_balance >= transaction['amount'] and transaction['amount'] > 0
+    return sender_balance >= transaction.amount and transaction.amount > 0
 
 def verify_transactions():
     '''
@@ -126,15 +128,11 @@ def add_transaction(sender, recipient, amount=1.0):
     # Use an ordered dict to always ensure the order of keys inside of the dictionary (for consistent hashing)
     # dicts return keys that arent in any specific order, which when stringified, can ruin a hash value. An ordered
     # dict orders the key that are entered the order that they're entered in, allowing us to have consistent hashing
-    transaction = OrderedDict([('sender', sender), ('recipient', recipient), ('amount', amount)])
-
+    transaction = Transaction(sender, recipient, amount)
     # If the transaction is legitimate, add it to the open transactions list and
     # keep track of participants
     if verify_transaction(transaction):
         open_transactions.append(transaction)
-        # Keep track of all participants
-        participants.add(sender)
-        participants.add(recipient)
         return True
 
     return False
@@ -147,19 +145,12 @@ def mine_block():
     hashed_block = hash_block(last_block)
     proof = proof_of_work()
 
-    # Create reward transaction data and match it to the typical transaction order
-    reward_tx_data = [
-        ('sender', 'MINING'),
-        ('recipient', owner),
-        ('amount', MINING_REWARD)
-    ]
-    # Create the reward transaction as an ordered dict
-    reward_transaction = OrderedDict(reward_tx_data)
+    reward_tx = Transaction('MINING', owner, MINING_REWARD)
 
     # Modify a local list of transactions so that users don't get rewarded if 
     # mining turns out to be unsuccessful
     copied_transactions = open_transactions[:]
-    copied_transactions.append(reward_transaction)
+    copied_transactions.append(reward_tx)
 
     # Create the k,v pairs inside of tuples for the ordered dictionary to insert them in the order
     # we specify the list
