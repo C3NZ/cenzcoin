@@ -20,8 +20,11 @@ def hash_block(block):
         Returns:
             a string containing the hex digest of the sha 256 hash
     '''
+    # Get a hashable version of our block
+    hashable_block = block.__dict__.copy()
+
     # Stringify and encode the block, return sha 256
-    stringified_block = json.dumps(block).encode()
+    stringified_block = json.dumps(hashable_block).encode()
     return hash_string_256(stringified_block)
 
 
