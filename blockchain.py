@@ -1,6 +1,7 @@
 import sys
 import hashlib as hl
 import json
+from collections import OrderedDict
 
 from functools import reduce
 
@@ -136,7 +137,11 @@ def add_transaction(sender, recipient, amount=1.0):
                 :amount: The amount of coins sent with the transaction(default=1.0)
     '''
 
-    transaction = {'sender': sender, 'recipient': recipient, 'amount': amount}
+
+    # Use an ordered dict to always ensure the order of keys inside of the dictionary (for consistent hashing)
+    # dicts return keys that arent in any specific order, which when stringified, can ruin a hash value. An ordered
+    # dict orders the key that are entered the order that they're entered in, allowing us to have consistent hashing
+    transaction = OrderedDict([('sender', sender), ('recipient', recipient), ('amount', amount)])
 
     # If the transaction is legitimate, add it to the open transactions list and
     # keep track of participants
@@ -157,23 +162,31 @@ def mine_block():
     hashed_block = hash_block(last_block)
     proof = proof_of_work()
 
-    # Rewarding the owner for mining a block
-    reward_transaction = {
-        'sender': 'MINING',
-        'recipient': owner,
-        'amount': MINING_REWARD
-    }
+    # Create reward transaction data and match it to the typical transaction order
+    reward_tx_data = [
+        ('sender', 'MINING'),
+        ('recipient', owner),
+        ('amount', MINING_REWARD)
+    ]
+    # Create the reward transaction as an ordered dict
+    reward_transaction = OrderedDict(reward_tx_data)
+
     # Modify a local list of transactions so that users don't get rewarded if 
     # mining turns out to be unsuccessful
     copied_transactions = open_transactions[:]
     copied_transactions.append(reward_transaction)
 
-    block = {
-        'previous_hash': hashed_block,
-        'index': len(blockchain),
-        'transactions': copied_transactions,
-        'proof': proof
-    }
+    # Create the k,v pairs inside of tuples for the ordered dictionary to insert them in the order
+    # we specify the list
+    block_data = [
+        ('previous_hash', hashed_block),
+        ('index', len(blockchain)),
+        ('transactions', copied_transactions),
+        ('proof', proof)
+    ]
+
+    # Create our block as an ordered dictionary
+    block = OrderedDict(block_data)
 
     blockchain.append(block)
     return True
