@@ -1,17 +1,15 @@
+'''
+    Blockchain module - for all functionality related to the blockchain itself
+'''
 # std lib imports
-import json
-import pickle
-import pdb
-import sys
-from collections import OrderedDict
 from functools import reduce
 
 # Own imports
-from hash_util import hash_string_256, hash_block
-from files import save_data, load_data
+from util.hash_util import hash_block
+from util.files import save_data, load_data
 from block import Block
 from transaction import Transaction
-from verification import Verification
+from util.verification import Verification
 
 MINING_REWARD = 10
 
@@ -40,7 +38,7 @@ class Blockchain:
             :hosting_node: the node currently hosting this blockchain
     '''
     def __init__(self, hosting_node_id):
-        self.chain, self.__open_transactions = load_data(from_json=True)
+        self.chain, self.open_transactions = load_data(from_json=True)
         self.hosting_node = hosting_node_id
 
     @property
@@ -55,7 +53,9 @@ class Blockchain:
     def open_transactions(self):
         return self.__open_transactions[:]
 
-
+    @open_transactions.setter
+    def open_transactions(self, value):
+        self.__open_transactions = value
 
     def proof_of_work(self):
         '''
@@ -174,7 +174,3 @@ class Blockchain:
         return True
 
 
-if __name__ == '__main__':
-    # add debug to the command to enter debug mode
-    if len(sys.argv) >= 2 and sys.argv[1] == 'debug':
-        pdb.set_trace()

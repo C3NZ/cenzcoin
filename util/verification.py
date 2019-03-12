@@ -2,7 +2,7 @@
     Verification module - for handling blockchain related verification
 '''
 
-from hash_util import hash_string_256, hash_block
+from util.hash_util import hash_string_256, hash_block
 
 class Verification:
     '''

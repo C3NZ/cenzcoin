@@ -2,7 +2,7 @@
 from collections import OrderedDict
 
 # Own imports
-from printable import Printable
+from util.printable import Printable
 
 class Transaction(Printable):
     '''
