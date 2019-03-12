@@ -22,7 +22,7 @@ def hash_block(block):
     '''
     # Get a hashable version of our block
     hashable_block = block.__dict__.copy()
-
+    hashable_block['transactions'] = [tx.to_ordered_dict() for tx in hashable_block['transactions']]
     # Stringify and encode the block, return sha 256
     stringified_block = json.dumps(hashable_block).encode()
     return hash_string_256(stringified_block)
