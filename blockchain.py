@@ -23,13 +23,15 @@ GENESIS_BLOCK = {
 }
 
 # Initialize some other global variables
-blockchain = [GENESIS_BLOCK]
 open_transactions = []
 owner = 'cenz'
 participants = {owner}
 
 # Load the block (From either json or binary )
 blockchain, open_transactions = load_data(from_json=False)
+
+if not blockchain:
+    blockchain = [GENESIS_BLOCK]
 
 def proof_of_work():
     '''
