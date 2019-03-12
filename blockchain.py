@@ -6,14 +6,15 @@ from functools import reduce
 
 # Own imports
 from hash_util import hash_string_256, hash_block
+from files import save_data, load_data
 
 # Mining reward for users mining blocks
 MINING_REWARD = 10
 
 # Initialize our (empty) blockchain list
 GENESIS_BLOCK = {
-    'previous_hash': 'genesis', 
-    'index': 0, 
+    'previous_hash': 'genesis',
+    'index': 0,
     'transactions': [],
     'proof': 100
 }
@@ -24,87 +25,8 @@ open_transactions = []
 owner = 'cenz'
 participants = {owner}
 
-def save_data():
-    '''
-        Save the blockchain to a file
-    '''
-    with open('blockchain.p', 'wb') as f:
-        # f.write(json.dumps(blockchain))
-        # f.write('\n')
-        # f.write(json.dumps(open_transactions))
-        save_data = {
-            'blockchain': blockchain,
-            'ot': open_transactions
-        }
-
-        f.write(pickle.dumps(save_data))
-
-def load_data():
-    '''
-        Load the blockchain from a file 
-    '''
-    with open('blockchain.p', 'rb') as f:
-        save_data = pickle.loads(f.read())
-
-        global blockchain
-        global open_transactions
-        blockchain = save_data['blockchain']
-        open_transactions = save_data['ot']
-#        lines = f.readlines()
-#        blockchain = json.loads(lines[0][:-1])
-#
-#        updated_blockchain = []
-#        for block in blockchain:
-#
-#            real_tx_data = []
-#            for tx in block['transactions']:
-#                # Bundle the data for the transaction
-#                tx_data = [
-#                    ('sender', tx['sender']),
-#                    ('recipient', tx['recipient']),
-#                    ('amount', tx['amount'])
-#                ]
-#
-#                # create the transaction as an ordered dict (for hashing consistency)
-#                tx_dict = OrderedDict(tx_data)
-#                real_tx_data.append(tx_dict)
-#
-#            # Bundle the data for the block
-#            real_block_data = [
-#                ('previous_hash', block['previous_hash']),
-#                ('index', block['index']),
-#                ('transactions', real_tx_data),
-#                ('proof', block['proof'])
-#            ]
-#
-#            # Append the real block to the updated blockchain which will eventually become the clients blockchain
-#            real_block = OrderedDict(real_block_data)
-#            updated_blockchain.append(real_block)
-#
-#        open_transactions = json.loads(lines[1])
-#
-#        updated_transactions = []
-#
-#        # Iterate over the open transactions
-#        for tx in open_transactions:
-#            # Bundle the tx data
-#            tx_data = [
-#                ('sender', tx['sender']),
-#                ('recipient', tx['recipient']),
-#                ('amount', tx['amount'])
-#            ]
-#
-#            # Create the real transaction and add it to the updated transactions which will eventually
-#            # become the clients open transactions
-#            tx_dict = OrderedDict(tx_data)
-#            updated_transactions.append(tx_dict)
-#
-#        # Set both the open_transactions and blockchain to their real data structures
-#        open_transactions = updated_transactions
-#        blockchain = updated_blockchain
-
-# Load data immediately
-load_data()
+# Load the block (From either json or binary )
+load_data(from_json=False)
 
 def proof_of_work():
     '''
@@ -257,8 +179,9 @@ def mine_block():
     # Create our block as an ordered dictionary
     block = OrderedDict(block_data)
 
+    # Append to the blockchain, and then save it to file
     blockchain.append(block)
-    save_data()
+    save_data(blockchain, open_transactions, to_json=False)
     return True
 
 
