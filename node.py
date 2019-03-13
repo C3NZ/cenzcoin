@@ -5,13 +5,15 @@ from uuid import uuid4
 
 from blockchain import Blockchain
 from util.verification import Verification
+from wallet import Wallet
 
 class Node:
 
     def __init__(self):
         # self.id = str(uuid4())
         self.id = 'tempid'
-        self.blockchain = Blockchain(self.id)
+        self.wallet = Wallet()
+        self.blockchain = Blockchain(self.wallet.public_key)
 
     def get_transaction_value(self):
         '''
@@ -54,6 +56,8 @@ class Node:
             print('2: Mine a new block')
             print('3: Output the blockchain blocks')
             print('4: Validate open transactions')
+            print('5: Create wallet')
+            print('6: Load wallet')
             print('q: quit')
 
             user_choice = self.get_user_choice()
@@ -73,11 +77,15 @@ class Node:
                     print('all open transactions are currently valid')
                 else:
                     print('There are invalid transactions')
+            elif user_choice == '5':
+                self.wallet.create_keys()
+            elif user_choice == '6':
+                pass
             elif user_choice == 'q':
                 waiting_for_input = False
 
             # Use a format string to create a formatted string indicating who the owner is and what their balance is 
-            print(f'Balance of {self.id}: {bc.get_balance():6.2f}')
+            print(f'Balance of {self.wallet.public_key}: {bc.get_balance():6.2f}')
 
             # Verify the blockchain over every action
             if not Verification.verify_chain(bc):
