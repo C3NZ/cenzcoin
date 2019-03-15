@@ -13,7 +13,7 @@ class Node:
         # self.id = str(uuid4())
         self.id = 'tempid'
         self.wallet = Wallet()
-        self.blockchain = Blockchain(self.wallet.public_key)
+        self.blockchain = None
 
     def get_transaction_value(self):
         '''
@@ -51,25 +51,30 @@ class Node:
         bc = self.blockchain
 
         while waiting_for_input:
+            # Make sure that we're always using the current blockchain
+
             print('Please choose')
             print('1: Add a new transaction value')
             print('2: Mine a new block')
             print('3: Output the blockchain blocks')
             print('4: Validate open transactions')
             print('5: Create wallet')
-            print('6: Load wallet')
+            print('6: Save wallet')
+            print('7: Load wallet')
             print('q: quit')
 
             user_choice = self.get_user_choice()
 
             if user_choice == '1':
                 recipient, amount = self.get_transaction_value()
-                if bc.add_transaction(self.id, recipient, amount):
+                signature = self.wallet.sign_transaction(self.wallet.public_key, recipient, amount)
+                if bc.add_transaction(self.wallet.public_key, recipient, signature, amount):
                     print('Added transaction!')
                 else:
                     print('Transaction failed')
             elif user_choice == '2':
-                bc.mine_block()
+                if not bc.mine_block():
+                    print('Mining failed. Is your wallet configured?')
             elif user_choice == '3':
                 self.print_blockchain_elements()
             elif user_choice == '4':
@@ -79,8 +84,12 @@ class Node:
                     print('There are invalid transactions')
             elif user_choice == '5':
                 self.wallet.create_keys()
+                bc = self.blockchain = Blockchain(self.wallet.public_key)
             elif user_choice == '6':
-                pass
+                self.wallet.save_keys()
+            elif user_choice == '7':
+                self.wallet.load_keys()
+                bc = self.blockchain = Blockchain(self.wallet.public_key)
             elif user_choice == 'q':
                 waiting_for_input = False
 

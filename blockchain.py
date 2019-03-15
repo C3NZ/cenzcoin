@@ -43,6 +43,9 @@ class Blockchain:
 
     @property
     def chain(self):
+        '''
+            Return a copied version of the blockchain
+        '''
         return self.__chain[:]
 
     @chain.setter
@@ -65,7 +68,7 @@ class Blockchain:
                 proof number that generates a valid hash
         '''
         # The last block added to the blockchain
-        last_block = self.__chain[-1]
+        last_block = self.chain[-1]
         last_hash = hash_block(last_block)
         proof = 0
 
@@ -85,6 +88,7 @@ class Blockchain:
             Returns:
                 The balance of the participant
         '''
+        print(self.chain)
         participant = self.hosting_node
 
         # Get the total transactions where the participant is the sender (both open and closed)
@@ -117,7 +121,7 @@ class Blockchain:
             return self.__chain[-1]
 
 
-    def add_transaction(self, sender, recipient, amount=1.0):
+    def add_transaction(self, sender, recipient, signature, amount=1.0):
         '''
             Append a new value as well as the last blockcahin value to the block chain
 
@@ -129,11 +133,14 @@ class Blockchain:
             Returns:
                 True if the transaction is valid, False otherwise
         '''
+        #Transaction failed, the wallet isn't setup.
+        if not self.hosting_node:
+            return False
 
         # Use an ordered dict to always ensure the order of keys inside of the dictionary (for consistent hashing)
         # dicts return keys that arent in any specific order, which when stringified, can ruin a hash value. An ordered
         # dict orders the key that are entered the order that they're entered in, allowing us to have consistent hashing
-        transaction = Transaction(sender, recipient, amount)
+        transaction = Transaction(sender, recipient, signature, amount)
         # If the transaction is legitimate, add it to the open transactions list and
         # keep track of participants
         if Verification.verify_transaction(transaction, self.get_balance):
@@ -149,11 +156,15 @@ class Blockchain:
             Returns:
                 True if successful
         '''
+        #Mine failed, the wallet isn't setup.
+        if not self.hosting_node:
+            return False
+
         last_block = self.__chain[-1]
         hashed_block = hash_block(last_block)
         proof = self.proof_of_work()
 
-        reward_tx = Transaction('MINING', self.hosting_node, MINING_REWARD)
+        reward_tx = Transaction('MINING', self.hosting_node, '', MINING_REWARD)
 
         # Modify a local list of transactions so that users don't get rewarded if 
         # mining turns out to be unsuccessful
@@ -169,8 +180,6 @@ class Blockchain:
         # Create our block, append it to the blockchain, and then save the blockchain
         block = Block(index, previous_hash, transactions, proof)
         self.__chain.append(block)
-        save_data(self.__chain, self.__open_transactions, to_json=True)
         self.__open_transactions = []
+        save_data(self.__chain, self.__open_transactions, to_json=True)
         return True
-
-

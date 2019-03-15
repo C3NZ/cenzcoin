@@ -16,10 +16,11 @@ class Transaction(Printable):
         Functions:
             :to_ordered_dict: return the transaction as an ordered dict (primarily for hashing)
     '''
-    def __init__(self, sender, recipient, amount):
+    def __init__(self, sender, recipient, signature, amount):
         self.sender = sender
         self.recipient = recipient
         self.amount = amount
+        self.signature = signature
 
     def to_ordered_dict(self):
         '''
@@ -28,4 +29,13 @@ class Transaction(Printable):
             Returns:
                 An Ordered dict containing key transaction information
         '''
-        return OrderedDict([('sender', self.sender), ('recipient', self.recipient), ('amount', self.amount)])
+        # Tx data (used for our order dictionary)
+        tx_data = [
+            ('sender', self.sender),
+            ('recipient', self.recipient),
+            ('signature', self.signature),
+            ('amount', self.amount)
+        ]
+
+        # Return an ordered dict containing the 
+        return OrderedDict(tx_data)
