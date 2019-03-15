@@ -15,7 +15,7 @@ def save_data(blockchain, open_transactions, to_json=False):
     '''
         Save the blockchain to a file
 
-        Arguments:
+        Parameters:
             :blockchain: the blockchain to save
             :open_transactions: a list of open transactions
             :to_json: blockchain file format
@@ -68,10 +68,11 @@ def parse_json_tx(open_tx):
     # Create the transaction data
     sender = open_tx['sender']
     recipient = open_tx['recipient']
+    signature = open_tx['signature']
     amount = open_tx['amount']
 
     # Create the transaction and return it
-    transaction = Transaction(sender, recipient, amount)
+    transaction = Transaction(sender, recipient, signature, amount)
     return transaction
 
 
@@ -169,3 +170,25 @@ def load_data(from_json=False):
         # Load blockchain and return it to client
         print("Blockchain and open transactions loaded")
         return (blockchain, open_transactions)
+
+def save_keys(private_key, public_key):
+    try:
+        with open('wallet.txt', 'w') as open_file:
+            open_file.write(private_key)
+            open_file.write('\n')
+            open_file.write(public_key)
+    except IOError:
+        print('Wallet couldnt be saved locally')
+
+def load_keys():
+    try:
+        with open('wallet.txt', 'r') as open_file:
+            # Grab all lines from the file and read them into
+            keys = open_file.readlines()
+            private_key = keys[0][:-1]
+            public_key = keys[1]
+
+            return (private_key, public_key)
+    except (IOError, IndexError):
+        print("The wallet couldn't be loaded, creating a new one")
+        return (None, None)
