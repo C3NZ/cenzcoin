@@ -1,17 +1,21 @@
 '''
-    Node module - for any client related things to run the blockchainj
+    Node module - for any client related things to run the blockchain
 '''
-from uuid import uuid4
 
+# Own imports
 from blockchain import Blockchain
 from util.verification import Verification
 from wallet import Wallet
 
 class Node:
+    '''
+        The blockchain node interface class
 
+        Attributes:
+            :wallet: the current nodes wallet
+            :blockchain: The current blockchain that is connected to the node
+    '''
     def __init__(self):
-        # self.id = str(uuid4())
-        self.id = 'tempid'
         self.wallet = Wallet()
         self.blockchain = None
 
@@ -43,12 +47,15 @@ class Node:
         '''
         for block in self.blockchain.chain:
             print(block)
-        else:
-            print('-'*10)
+
+        print('-'*10)
 
     def listen_for_input(self):
+        '''
+            Listen for user input
+        '''
         waiting_for_input = True
-        bc = self.blockchain
+        b_chain = self.blockchain
 
         while waiting_for_input:
             # Make sure that we're always using the current blockchain
@@ -68,42 +75,49 @@ class Node:
             if user_choice == '1':
                 recipient, amount = self.get_transaction_value()
                 signature = self.wallet.sign_transaction(self.wallet.public_key, recipient, amount)
-                if bc.add_transaction(self.wallet.public_key, recipient, signature, amount):
+                if b_chain.add_transaction(self.wallet.public_key, recipient, signature, amount):
                     print('Added transaction!')
                 else:
                     print('Transaction failed')
             elif user_choice == '2':
-                if not bc.mine_block():
+                if not b_chain.mine_block():
                     print('Mining failed. Is your wallet configured?')
             elif user_choice == '3':
                 self.print_blockchain_elements()
             elif user_choice == '4':
-                if Verification.verify_transactions(bc.open_transactions, bc.get_balance):
+                if Verification.verify_transactions(b_chain.open_transactions, b_chain.get_balance):
                     print('all open transactions are currently valid')
                 else:
                     print('There are invalid transactions')
             elif user_choice == '5':
                 self.wallet.create_keys()
-                bc = self.blockchain = Blockchain(self.wallet.public_key)
+                b_chain = self.blockchain = Blockchain(self.wallet.public_key)
             elif user_choice == '6':
                 self.wallet.save_keys()
             elif user_choice == '7':
                 self.wallet.load_keys()
-                bc = self.blockchain = Blockchain(self.wallet.public_key)
+                b_chain = self.blockchain = Blockchain(self.wallet.public_key)
             elif user_choice == 'q':
                 waiting_for_input = False
 
-            # Use a format string to create a formatted string indicating who the owner is and what their balance is 
-            print(f'Balance of {self.wallet.public_key}: {bc.get_balance():6.2f}')
+            # Use a format string to create a formatted string indicating
+            # who the owner is and what their balance is
+            print(f'Balance of {self.wallet.public_key}: {b_chain.get_balance():6.2f}')
 
             # Verify the blockchain over every action
-            if not Verification.verify_chain(bc):
+            if not Verification.verify_chain(b_chain):
                 self.print_blockchain_elements()
                 print('Invalid blockchain!')
                 break
         print('Blockchain now shutting down')
 
 
-if __name__ == '__main__':
+def main():
+    '''
+        Run a new node instance
+    '''
     node = Node()
     node.listen_for_input()
+
+if __name__ == '__main__':
+    main()

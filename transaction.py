@@ -8,7 +8,7 @@ class Transaction(Printable):
     '''
         Transaction class to represent a transaction to the user
 
-        Properties:
+        Attributes:
             :sender: the transaction sender
             :recipient: the transaction recipient
             :amount: the transaction amount
