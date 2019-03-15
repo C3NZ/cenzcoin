@@ -11,6 +11,8 @@ from block import Block
 from transaction import Transaction
 from util.verification import Verification
 
+from wallet import Wallet
+
 MINING_REWARD = 10
 
 def sum_transactions(tx_sum, txs):
@@ -88,7 +90,6 @@ class Blockchain:
             Returns:
                 The balance of the participant
         '''
-        print(self.chain)
         participant = self.hosting_node
 
         # Get the total transactions where the participant is the sender (both open and closed)
@@ -133,6 +134,7 @@ class Blockchain:
             Returns:
                 True if the transaction is valid, False otherwise
         '''
+
         #Transaction failed, the wallet isn't setup.
         if not self.hosting_node:
             return False
@@ -141,10 +143,16 @@ class Blockchain:
         # dicts return keys that arent in any specific order, which when stringified, can ruin a hash value. An ordered
         # dict orders the key that are entered the order that they're entered in, allowing us to have consistent hashing
         transaction = Transaction(sender, recipient, signature, amount)
+
+        # Validate that the transaction did indeed come from the sender
+        if not Wallet.verify_transaction(transaction):
+            return False
+
         # If the transaction is legitimate, add it to the open transactions list and
         # keep track of participants
         if Verification.verify_transaction(transaction, self.get_balance):
             self.__open_transactions.append(transaction)
+            save_data(self.__chain, self.__open_transactions, to_json=True)
             return True
 
         return False
@@ -179,6 +187,12 @@ class Blockchain:
 
         # Create our block, append it to the blockchain, and then save the blockchain
         block = Block(index, previous_hash, transactions, proof)
+
+        for transaction in block.transactions:
+            if not Wallet.verify_transaction(transaction):
+                self.__open_transactions.remove(transaction)
+                return False
+
         self.__chain.append(block)
         self.__open_transactions = []
         save_data(self.__chain, self.__open_transactions, to_json=True)

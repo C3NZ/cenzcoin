@@ -93,6 +93,7 @@ class Wallet:
 
         # create a sha256 hash of the current transaction as the payload to be signed
         payload = SHA256.new((str(sender) + str(recipient) + str(amount)).encode('utf8'))
+
         # Sign the payload as proof that this transaction was initiated by th
         binary_signature = signer.sign(payload)
 
@@ -100,3 +101,29 @@ class Wallet:
         str_signature = binascii.hexlify(binary_signature).decode('ascii')
 
         return str_signature
+
+    @staticmethod
+    def verify_transaction(transaction):
+        '''
+            Verify a transaction from a user
+        '''
+        if transaction.sender == 'MINING':
+            return True
+
+        # Convert the public key into a binary encoded byte string and then 
+        # create an RSA public key object from it
+        binary_key = binascii.unhexlify(transaction.sender)
+        public_key = RSA.importKey(binary_key)
+
+        # Create a new verifier object from the senders public key
+        verifier = PKCS1_v1_5.new(public_key)
+
+        # Hash the transaction to obtain a payload
+        payload = SHA256.new((transaction.sender + transaction.recipient + str(transaction.amount)).encode('utf8'))
+
+        # Grab a binary version of the users signature
+        binary_signature = binascii.unhexlify(transaction.signature)
+
+        # Confirm whether or not the signature generated from the senders public key matches the
+        # signature attached to the transaction
+        return verifier.verify(payload, binary_signature)
