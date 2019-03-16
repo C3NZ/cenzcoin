@@ -171,10 +171,6 @@ class Blockchain:
         # dict orders the key that are entered the order that they're entered in, allowing us to have consistent hashing
         transaction = Transaction(sender, recipient, signature, amount)
 
-        # Validate that the transaction did indeed come from the sender
-        if not Wallet.verify_transaction(transaction):
-            return False
-
         # If the transaction is legitimate, add it to the open transactions list and
         # keep track of participants
         if Verification.verify_transaction(transaction, self.get_balance):
@@ -199,11 +195,18 @@ class Blockchain:
         hashed_block = hash_block(last_block)
         proof = self.proof_of_work()
 
-        reward_tx = Transaction('MINING', self.hosting_node, '', MINING_REWARD)
-
         # Modify a local list of transactions so that users don't get rewarded if 
         # mining turns out to be unsuccessful
         copied_transactions = self.__open_transactions[:]
+
+        # Verify all copied transactions
+        for transaction in copied_transactions:
+            if not Wallet.verify_transaction(transaction):
+                self.__open_transactions.remove(transaction)
+                return False
+
+        # Create the reward transaction and add it to the copied transactions list
+        reward_tx = Transaction('MINING', self.hosting_node, '', MINING_REWARD)
         copied_transactions.append(reward_tx)
 
         # Create the k,v pairs inside of tuples for the ordered dictionary to insert them in the order
@@ -214,11 +217,6 @@ class Blockchain:
 
         # Create our block, append it to the blockchain, and then save the blockchain
         block = Block(index, previous_hash, transactions, proof)
-
-        for transaction in block.transactions:
-            if not Wallet.verify_transaction(transaction):
-                self.__open_transactions.remove(transaction)
-                return False
 
         self.__chain.append(block)
         self.__open_transactions = []

@@ -3,6 +3,7 @@
 '''
 
 from util.hash_util import hash_string_256, hash_block
+from wallet import Wallet
 
 class Verification:
     '''
@@ -55,7 +56,7 @@ class Verification:
         return True
 
     @staticmethod
-    def verify_transaction(transaction, get_balance):
+    def verify_transaction(transaction, get_balance, check_funds=True):
         '''
             Veryify that the participant has a high enough balance in order to complete
             a transaction
@@ -68,9 +69,14 @@ class Verification:
                 True if the sender balance is greater than the tx amount and that
                 the tx amount is greater than 0
         '''
-        sender_balance = get_balance()
+        if check_funds:
+            # Validate the signature on the transaction before checking the users funds
+            if Wallet.verify_transaction(transaction):
+                sender_balance = get_balance()
+                return sender_balance >= transaction.amount and transaction.amount > 0 and Wallet.verify_transaction(transaction)
+            return False
 
-        return sender_balance >= transaction.amount and transaction.amount > 0
+        return Wallet.verify_transaction(transaction)
 
     @classmethod
     def verify_transactions(cls, open_transactions, get_balance):
@@ -84,5 +90,5 @@ class Verification:
             Returns:
                 True if all transactions are valid, False otherwise.
         '''
-        return all(cls.verify_transaction(tx, get_balance) for tx in open_transactions)
+        return all(cls.verify_transaction(tx, get_balance, check_funds=False) for tx in open_transactions)
 
