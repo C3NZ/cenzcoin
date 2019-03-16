@@ -107,9 +107,6 @@ class Wallet:
         '''
             Verify a transaction from a user
         '''
-        if transaction.sender == 'MINING':
-            return True
-
         # Convert the public key into a binary encoded byte string and then 
         # create an RSA public key object from it
         binary_key = binascii.unhexlify(transaction.sender)
