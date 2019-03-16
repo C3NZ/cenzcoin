@@ -7,9 +7,9 @@ from functools import reduce
 # Own imports
 from util.hash_util import hash_block
 from util.files import save_data, load_data
+from util.verification import Verification
 from block import Block
 from transaction import Transaction
-from util.verification import Verification
 
 from wallet import Wallet
 
@@ -40,7 +40,7 @@ class Blockchain:
             :hosting_node: the node currently hosting this blockchain
     '''
     def __init__(self, hosting_node_id):
-        self.chain, self.open_transactions = load_data(from_json=True)
+        self.__chain, self.__open_transactions = load_data(from_json=True)
         self.hosting_node = hosting_node_id
 
     @property
@@ -56,6 +56,9 @@ class Blockchain:
 
     @property
     def open_transactions(self):
+        '''
+            Get a copy of the open transactions attached to the blockchain
+        '''
         return self.__open_transactions[:]
 
     @open_transactions.setter
@@ -79,19 +82,16 @@ class Blockchain:
 
         return proof
 
-
-    def get_balance(self):
+    def get_amount_sent(self, participant):
         '''
-            Gets the total balance of a single participants
+            Get the amount of coins sent by a participant (open and closed)
 
-            Arguments:
-                :participant: the name of the participant that we want the balance of
+            Parameters:
+                :participant: the participant you're trying to get the balance of
 
             Returns:
-                The balance of the participant
+                The amount the participant has sent
         '''
-        participant = self.hosting_node
-
         # Get the total transactions where the participant is the sender (both open and closed)
         tx_sent = [[tx.amount for tx in block.transactions if tx.sender == participant] for block in self.__chain]
         open_tx_sent = [[tx.amount for tx in self.__open_transactions if tx.sender == participant]]
@@ -100,11 +100,38 @@ class Blockchain:
         # Sum up the amount the participant has sent
         amount_sent = reduce(sum_transactions, tx_sent, 0)
 
+        return amount_sent
+
+    def get_amount_received(self, participant):
+        '''
+            Get the total amount received by the participant
+
+            Parameters:
+                :participant: the participant you're trying to find the total amt of coins received
+
+            Returns:
+                The amount the participant has received
+        '''
         # Get the total transactions where the participant is the receiver (strictly closed)
         tx_received = [[tx.amount for tx in block.transactions if tx.recipient == participant] for block in self.__chain]
 
         # Sum up the amount the participant has received
         amount_received = reduce(sum_transactions, tx_received, 0)
+
+        return amount_received
+
+    def get_balance(self):
+        '''
+            Gets the total balance of a single participant
+
+            Returns:
+                The balance of the participant
+        '''
+        participant = self.hosting_node
+
+        # Get both the amount sent and received by the participant
+        amount_sent = self.get_amount_sent(participant)
+        amount_received = self.get_amount_received(participant)
 
         # Return the users balance
         return amount_received - amount_sent
@@ -116,7 +143,7 @@ class Blockchain:
             Returns:
                 The last block on the blockchain
         '''
-        if len(self.__chain) < 1:
+        if self.__chain:
             return None
         else:
             return self.__chain[-1]
