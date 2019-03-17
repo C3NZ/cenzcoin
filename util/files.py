@@ -172,13 +172,21 @@ def load_data(from_json=False):
         return (blockchain, open_transactions)
 
 def save_keys(private_key, public_key):
+    '''
+        Save a pair of keys to a file
+
+        Returns:
+            True if the save is successful, False otherwise.
+    '''
     try:
         with open('wallet.txt', 'w') as open_file:
             open_file.write(private_key)
             open_file.write('\n')
             open_file.write(public_key)
+        return True
     except IOError:
         print('Wallet couldnt be saved locally')
+        return False
 
 def load_keys():
     try:

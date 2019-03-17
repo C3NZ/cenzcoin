@@ -42,8 +42,10 @@ class Wallet:
         # Make sure there are keys to save 
         if self.private_key and self.public_key:
             save_keys(self.private_key, self.public_key)
+            return True
         else:
             print('You need both a private and public key to save it to a file')
+            return False
 
     def load_keys(self):
         '''
@@ -52,8 +54,10 @@ class Wallet:
         self.private_key, self.public_key = load_keys()
 
         if not self.private_key or not self.public_key:
-            print('Creating a new pair of keys')
-            self.create_keys()
+            print('public and private key failed to load')
+            return False
+        return True
+
 
     def generate_keys(self):
         '''

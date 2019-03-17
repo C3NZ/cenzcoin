@@ -182,14 +182,14 @@ class Blockchain:
 
     def mine_block(self):
         '''
-            Mine the current block on the blockchain
+            Mine a block on to the blockchain
 
             Returns:
-                True if successful
+                The mined block if successful, None if not.
         '''
         #Mine failed, the wallet isn't setup.
         if not self.hosting_node:
-            return False
+            return None
 
         last_block = self.__chain[-1]
         hashed_block = hash_block(last_block)
@@ -203,7 +203,7 @@ class Blockchain:
         for transaction in copied_transactions:
             if not Wallet.verify_transaction(transaction):
                 self.__open_transactions.remove(transaction)
-                return False
+                return None
 
         # Create the reward transaction and add it to the copied transactions list
         reward_tx = Transaction('MINING', self.hosting_node, '', MINING_REWARD)
@@ -218,7 +218,9 @@ class Blockchain:
         # Create our block, append it to the blockchain, and then save the blockchain
         block = Block(index, previous_hash, transactions, proof)
 
+        # Append the block to the blockchain and clear all open trnasactions
         self.__chain.append(block)
         self.__open_transactions = []
+
         save_data(self.__chain, self.__open_transactions, to_json=True)
-        return True
+        return block
